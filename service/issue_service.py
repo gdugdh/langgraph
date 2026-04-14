@@ -35,7 +35,7 @@ class IssueService:
         category: str,
         preliminary_title: str,
     ) -> IssueHandlingResult:
-        print("[IssueService] start handle_unresolved_ticket")
+        # print("[IssueService] start handle_unresolved_ticket")
         issues = self.issue_repository.list_issues()
         user_context = build_user_context(messages)
         initial_message = get_initial_user_message(messages) or user_context
@@ -64,10 +64,10 @@ class IssueService:
                 history_event="existing_issue_updated",
                 similarity_score=score,
             )
-            print(
-                "[IssueService] end handle_unresolved_ticket "
-                f"mode=existing_task issue_id={result.similar_issue_id} score={score:.4f}"
-            )
+            # print(
+            #     "[IssueService] end handle_unresolved_ticket "
+            #     f"mode=existing_task issue_id={result.similar_issue_id} score={score:.4f}"
+            # )
             return result
 
         issue_title = preliminary_title.strip() or initial_message.strip()
@@ -95,10 +95,10 @@ class IssueService:
             history_event="new_issue_created",
             similarity_score=score,
         )
-        print(
-            "[IssueService] end handle_unresolved_ticket "
-            f"mode=new_task issue_id={result.created_issue_id} score={score:.4f}"
-        )
+        # print(
+        #     "[IssueService] end handle_unresolved_ticket "
+        #     f"mode=new_task issue_id={result.created_issue_id} score={score:.4f}"
+        # )
         return result
 
     def _find_similar_issue_fast(
@@ -166,8 +166,8 @@ class IssueService:
                 message=f"Dedup refinement invoke failed: {exc}",
             )
 
-        print(
-            "[IssueService] end llm_duplicate_refinement "
-            f"is_duplicate={result.is_duplicate} confidence={result.confidence}"
-        )
+        # print(
+        #     "[IssueService] end llm_duplicate_refinement "
+        #     f"is_duplicate={result.is_duplicate} confidence={result.confidence}"
+        # )
         return result, None

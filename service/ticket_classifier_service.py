@@ -19,7 +19,7 @@ class TicketClassifierService:
         self,
         messages: list[TicketMessage],
     ) -> tuple[TicketClassification | None, ServiceError | None]:
-        print("[TicketClassifierService] start classify")
+        # print("[TicketClassifierService] start classify")
         categories = self.taxonomy_repo.list_categories()
         priorities = self.taxonomy_repo.list_priorities()
 
@@ -96,10 +96,10 @@ class TicketClassifierService:
         if not result.need_clarification:
             result.question = ""
 
-        print(
-            "[TicketClassifierService] end classify "
-            f"title={result.preliminary_title!r} "
-            f"category={result.category} priority={result.priority} "
-            f"need_clarification={result.need_clarification}"
-        )
+        # print(
+        #     "[TicketClassifierService] end classify "
+        #     f"title={result.preliminary_title!r} "
+        #     f"category={result.category} priority={result.priority} "
+        #     f"need_clarification={result.need_clarification}"
+        # )
         return result, None

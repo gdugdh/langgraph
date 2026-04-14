@@ -18,7 +18,7 @@ class KnowledgeBaseSearchService:
         self.kb_repository = kb_repository
 
     def search_ticket(self, messages: list[TicketMessage], category: str) -> KnowledgeBaseSearchResult:
-        print("[KnowledgeBaseSearchService] start search_ticket")
+        # print("[KnowledgeBaseSearchService] start search_ticket")
         queries = self._build_search_queries(messages, category)
         hits = self._search(queries)
         solution_found = bool(hits and hits[0].score >= 0.22 and len(hits[0].matched_terms) >= 2)
@@ -40,15 +40,15 @@ class KnowledgeBaseSearchService:
             solution_found=solution_found,
             solution_text=solution_text,
         )
-        print(
-            "[KnowledgeBaseSearchService] end search_ticket "
-            f"queries={len(result.search_queries)} hits={len(result.kb_results)} "
-            f"solution_found={result.solution_found}"
-        )
+        # print(
+        #     "[KnowledgeBaseSearchService] end search_ticket "
+        #     f"queries={len(result.search_queries)} hits={len(result.kb_results)} "
+        #     f"solution_found={result.solution_found}"
+        # )
         return result
 
     def _search(self, queries: list[str]) -> list[SearchHit]:
-        print(f"[KnowledgeBaseSearchService] start search queries={len(queries)}")
+        # print(f"[KnowledgeBaseSearchService] start search queries={len(queries)}")
         all_hits: dict[str, SearchHit] = {}
         documents = self.kb_repository.list_documents()
         for query in queries:
@@ -75,11 +75,11 @@ class KnowledgeBaseSearchService:
                 if existing is None or hit.score > existing.score:
                     all_hits[document.path] = hit
         result = sorted(all_hits.values(), key=lambda item: item.score, reverse=True)[:5]
-        print(f"[KnowledgeBaseSearchService] end search hits={len(result)}")
+        # print(f"[KnowledgeBaseSearchService] end search hits={len(result)}")
         return result
 
     def _build_search_queries(self, messages: list[TicketMessage], category: str) -> list[str]:
-        print("[KnowledgeBaseSearchService] start build_search_queries")
+        # print("[KnowledgeBaseSearchService] start build_search_queries")
         merged_context = build_user_context(messages)
         base = [merged_context]
         normalized = normalize_text(merged_context)
@@ -120,7 +120,7 @@ class KnowledgeBaseSearchService:
                 seen.add(cleaned)
                 unique_queries.append(cleaned)
         result = unique_queries[:5]
-        print(f"[KnowledgeBaseSearchService] end build_search_queries queries={len(result)}")
+        # print(f"[KnowledgeBaseSearchService] end build_search_queries queries={len(result)}")
         return result
 
     @staticmethod

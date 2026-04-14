@@ -34,7 +34,7 @@ def build_openrouter_chat_llm(model_env_var: str) -> tuple[object | None, Servic
         )
 
     model = _read_env(model_env_var) or _read_env("OPENROUTER_MODEL", "openai/gpt-4o-mini")
-    print(f"[LLMFactory] end build_chat_llm provider=openrouter model={model}")
+    # print(f"[LLMFactory] end build_chat_llm provider=openrouter model={model}")
     return (
         ChatOpenAI(
             model=model,
@@ -59,7 +59,7 @@ def build_openai_chat_llm(model_env_var: str) -> tuple[object | None, ServiceErr
         )
 
     model = _read_env(model_env_var) or _read_env("OPENAI_MODEL", "gpt-4o-mini")
-    print(f"[LLMFactory] end build_chat_llm provider=openai model={model}")
+    # print(f"[LLMFactory] end build_chat_llm provider=openai model={model}")
     return (
         ChatOpenAI(
             model=model,
@@ -77,7 +77,7 @@ def build_ollama_chat_llm(model_env_var: str) -> tuple[object | None, ServiceErr
             code="langchain_ollama_missing",
             message="langchain-ollama is not installed.",
         )
-    print(f"[LLMFactory] end build_chat_llm provider=ollama model={model} base_url={base_url}")
+    # print(f"[LLMFactory] end build_chat_llm provider=ollama model={model} base_url={base_url}")
     return (
         ChatOllama(
             model=model,
@@ -88,7 +88,7 @@ def build_ollama_chat_llm(model_env_var: str) -> tuple[object | None, ServiceErr
 
 
 def build_chat_llm(model_env_var: str) -> tuple[object | None, ServiceError | None]:
-    print(f"[LLMFactory] start build_chat_llm model_env_var={model_env_var}")
+    # print(f"[LLMFactory] start build_chat_llm model_env_var={model_env_var}")
 
     openrouter_key = _read_env("OPENROUTER_API_KEY")
     if openrouter_key:

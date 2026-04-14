@@ -337,14 +337,16 @@ def gen_png_graph(app_obj: Any, name_photo: str = "graph.png") -> None:
         app_obj: Скомпилированный объект графа
         name_photo: Имя файла для сохранения (по умолчанию "graph.png")
     """
-    with open(name_photo, "wb") as f:
+    output_path = Path(name_photo)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "wb") as f:
         f.write(app_obj.get_graph().draw_mermaid_png())
 
 
 def main() -> None:
     print("Support Bot MVP")
-    print("Flow: intake -> classify -> clarify(if needed, up to 3 times) -> search KB -> issue handling -> final response")
-    print(f"KB directory: {KB_DIR}")
+    # print("Flow: intake -> classify -> clarify(if needed, up to 3 times) -> search KB -> issue handling -> final response")
+    print(f"Knowledge base directory: {KB_DIR}")
     print(f"Issue registry: {ISSUES_PATH}")
     print(f"Taxonomy file: {TAXONOMY_PATH}")
 
@@ -369,34 +371,34 @@ def main() -> None:
             print(f"\nExecution failed: {exc}")
             continue
 
-        print("\n--- Сводка по тикету ---")
-        print(
-            json.dumps(
-                {
-                    "ticket_id": final_state["ticket_id"],
-                    "user_id": final_state["user_id"],
-                    "messages": final_state["messages"],
-                    "preliminary_title": final_state["preliminary_title"],
-                    "category": final_state["category"],
-                    "priority": final_state["priority"],
-                    "status": final_state["status"],
-                    "need_clarification": final_state["need_clarification"],
-                    "kb_results": final_state["kb_results"],
-                    "solution_found": final_state["solution_found"],
-                    "solution_text": final_state["solution_text"],
-                    "similar_issue_found": final_state["similar_issue_found"],
-                    "similar_issue_id": final_state["similar_issue_id"],
-                    "task_created": final_state["task_created"],
-                    "task_file_path": final_state["task_file_path"],
-                    "frequency_incremented": final_state["frequency_incremented"],
-                    "final_response": final_state["final_response"],
-                    "created_at": final_state["created_at"],
-                    "updated_at": final_state["updated_at"],
-                },
-                ensure_ascii=False,
-                indent=2,
-            )
-        )
+        # print("\n--- Сводка по тикету ---")
+        # print(
+        #     json.dumps(
+        #         {
+        #             "ticket_id": final_state["ticket_id"],
+        #             "user_id": final_state["user_id"],
+        #             "messages": final_state["messages"],
+        #             "preliminary_title": final_state["preliminary_title"],
+        #             "category": final_state["category"],
+        #             "priority": final_state["priority"],
+        #             "status": final_state["status"],
+        #             "need_clarification": final_state["need_clarification"],
+        #             "kb_results": final_state["kb_results"],
+        #             "solution_found": final_state["solution_found"],
+        #             "solution_text": final_state["solution_text"],
+        #             "similar_issue_found": final_state["similar_issue_found"],
+        #             "similar_issue_id": final_state["similar_issue_id"],
+        #             "task_created": final_state["task_created"],
+        #             "task_file_path": final_state["task_file_path"],
+        #             "frequency_incremented": final_state["frequency_incremented"],
+        #             "final_response": final_state["final_response"],
+        #             "created_at": final_state["created_at"],
+        #             "updated_at": final_state["updated_at"],
+        #         },
+        #         ensure_ascii=False,
+        #         indent=2,
+        #     )
+        # )
 
 
 if __name__ == "__main__":

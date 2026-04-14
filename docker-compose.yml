@@ -7,6 +7,8 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
+    networks:
+      - support_bot_net
     healthcheck:
       test: ["CMD", "ollama", "list"]
       interval: 10s
@@ -26,6 +28,8 @@ services:
       OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2:1b}
     volumes:
       - ollama_data:/root/.ollama
+    networks:
+      - support_bot_net
     entrypoint:
       - /bin/sh
       - -c
@@ -52,6 +56,16 @@ services:
       - ./data:/app/data:ro
       - ./issues.json:/app/issues.json
       - ${APP_ENV_FILE:-../.env}:/app/.env:ro
+    networks:
+      - support_bot_net
 
 volumes:
   ollama_data:
+
+networks:
+  support_bot_net:
+    name: support_bot_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.31.250.0/24
