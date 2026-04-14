@@ -1,0 +1,14 @@
+{
+  "categories": [
+    "access",
+    "bug",
+    "integration",
+    "billing",
+    "unknown"
+  ],
+  "priorities": [
+    "low",
+    "medium",
+    "high"
+  ]
+}
