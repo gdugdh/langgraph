@@ -329,6 +329,17 @@ def build_app():
         issue_service=issue_service,
     )
 
+def gen_png_graph(app_obj: Any, name_photo: str = "graph.png") -> None:
+    """
+    Генерирует PNG-изображение графа и сохраняет в файл.
+
+    Args:
+        app_obj: Скомпилированный объект графа
+        name_photo: Имя файла для сохранения (по умолчанию "graph.png")
+    """
+    with open(name_photo, "wb") as f:
+        f.write(app_obj.get_graph().draw_mermaid_png())
+
 
 def main() -> None:
     print("Support Bot MVP")
@@ -340,6 +351,8 @@ def main() -> None:
     app = build_app()
     user_id = input("ID пользователя [demo-user]: ").strip() or "demo-user"
     print("Введите проблему. Команды выхода: exit, quit, выход")
+
+    gen_png_graph(app, "docs/graph.png")
 
     while True:
         problem = input("\nОпишите проблему: ").strip()
