@@ -13,27 +13,20 @@ from models import (
     ServiceError,
 )
 from repo.abstractions import IssueRepository
-from service.llm_factory import build_chat_llm
 from service.text_utils import (
     build_user_context,
     get_initial_user_message,
     normalize_text,
-    overlap_score,
-    tokenize,
+    tfidf_cosine_score,
     utc_now,
 )
 from ticket_state import TicketMessage
 
 
 class IssueService:
-    def __init__(self, issue_repository: IssueRepository) -> ServiceError:
+    def __init__(self, issue_repository: IssueRepository, llm: object) -> ServiceError:
         self.issue_repository = issue_repository
-        self.llm = build_chat_llm("SUPPORT_BOT_DEDUP_MODEL")
-        if self.llm is None:
-            return ServiceError(
-                code="cant_connect_to_llm",
-                message="Cant connect to llm. "
-            )
+        self.llm = llm
 
     def handle_unresolved_ticket(
         self,
@@ -133,11 +126,10 @@ class IssueService:
             return 0.0
 
         user_context = build_user_context(messages)
-        new_tokens = tokenize(user_context)
-        issue_tokens = tokenize(" ".join([issue.title, issue.normalized_problem, issue.last_summary]))
-        if not new_tokens or not issue_tokens:
+        issue_text = " ".join([issue.title, issue.normalized_problem, issue.last_summary])
+        if not user_context.strip() or not issue_text.strip():
             return 0.0
-        return overlap_score(new_tokens, issue_tokens, user_context, issue.last_summary)
+        return tfidf_cosine_score(user_context, issue_text)
 
     def _llm_duplicate_refinement(
         self,

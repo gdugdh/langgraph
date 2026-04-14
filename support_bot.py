@@ -16,6 +16,7 @@ from service.kb_search_service import KnowledgeBaseSearchService
 from service.ticket_classifier_service import TicketClassifierService
 from service.text_utils import get_latest_message_by_role, utc_now
 from ticket_state import SupportTicketState, TicketStatus
+from config.llm_factory import build_chat_llm
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -317,9 +318,12 @@ def main() -> None:
     issue_repo = FileIssueRepository(ISSUES_PATH)
     kb_repo = FileKnowledgeBaseRepository(KB_DIR)
 
-    classifier_service = TicketClassifierService(taxonomy_repo)
+    classifier_llm, _classifier_error = build_chat_llm("SUPPORT_BOT_CLASSIFIER_MODEL")
+    dedup_llm, _dedup_error = build_chat_llm("SUPPORT_BOT_DEDUP_MODEL")
+
+    classifier_service = TicketClassifierService(taxonomy_repo, classifier_llm)
     search_service = KnowledgeBaseSearchService(kb_repo)
-    issue_service = IssueService(issue_repo)
+    issue_service = IssueService(issue_repo, dedup_llm)
 
     app = build_graph(
         classifier_service=classifier_service,

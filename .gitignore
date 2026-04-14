@@ -1,5 +1,6 @@
 __pycache__
 service/__pycache__
 repo/__pycache__
+tests/__pycache__
 AGENTS.md
 graph.png

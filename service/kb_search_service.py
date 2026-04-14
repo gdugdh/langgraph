@@ -5,10 +5,9 @@ import re
 from models import KnowledgeBaseSearchResult, SearchHit
 from repo.abstractions import KnowledgeBaseRepository
 from service.text_utils import (
-    SEARCH_ALIAS_MAP,
     build_user_context,
     normalize_text,
-    overlap_score,
+    tfidf_cosine_score,
     tokenize,
 )
 from ticket_state import TicketMessage
@@ -59,7 +58,7 @@ class KnowledgeBaseSearchService:
 
             for document in documents:
                 doc_tokens = tokenize(document.content)
-                score = overlap_score(query_tokens, doc_tokens, query, document.content)
+                score = tfidf_cosine_score(query, document.content)
                 if score <= 0:
                     continue
 
@@ -87,26 +86,31 @@ class KnowledgeBaseSearchService:
         if normalized:
             base.append(normalized)
 
-        for source, target in SEARCH_ALIAS_MAP.items():
-            if source in normalize_text(merged_context):
-                base.append(normalize_text(merged_context.replace(source, target)))
-
         if category == "access" and any(
-            hint in normalized for hint in {"white screen", "after login", "personal account"}
+            hint in normalized for hint in {"белый экран", "после входа", "личный кабинет", "кабинет"}
         ):
-            base.append("white screen after login personal account chrome cache")
+            base.append("белый экран после входа в личный кабинет")
+            base.append("личный кабинет белый экран после входа кэш браузера")
         elif category == "bug" and any(
-            hint in normalized for hint in {"excel", "csv", "export", "download", "corrupt file"}
+            hint in normalized for hint in {"excel", "xlsx", "выгруз", "скач", "поврежден", "бит"}
         ):
-            base.append("excel export corrupted file download")
+            base.append("выгрузка excel поврежденный файл")
+            base.append("скачанный файл поврежден после выгрузки")
         elif category == "bug" and any(
-            hint in normalized for hint in {"reports section", "reports page", "after update"}
+            hint in normalized for hint in {"отчет", "отчетов", "обновлен", "релиз", "спиннер"}
         ):
-            base.append("reports section after update issue")
+            base.append("раздел отчетов не открывается после обновления")
+            base.append("после обновления пустой экран в отчетах")
         elif category == "billing" and any(
-            hint in normalized for hint in {"invoice", "billing", "receipt", "счет", "квитанц"}
+            hint in normalized for hint in {"счет", "счетов", "квитанц", "платеж", "биллинг"}
         ):
-            base.append("billing invoice history receipt")
+            base.append("история счетов и платежных документов")
+            base.append("не могу найти квитанцию или счет")
+        elif category == "integration" and any(
+            hint in normalized for hint in {"api", "webhook", "вебхук", "интеграц", "синхрон"}
+        ):
+            base.append("ошибка интеграции api webhook синхронизация")
+            base.append("не приходит событие из интеграции")
 
         unique_queries: list[str] = []
         seen: set[str] = set()

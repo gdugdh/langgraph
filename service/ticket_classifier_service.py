@@ -7,20 +7,13 @@ from langchain_core.prompts import PromptTemplate
 
 from models import ServiceError, TicketClassification
 from repo.abstractions import TaxonomyRepository
-from service.llm_factory import build_chat_llm
 from ticket_state import TicketMessage
 
 
-
 class TicketClassifierService:
-    def __init__(self, taxonomy_repo: TaxonomyRepository) -> ServiceError | None:
+    def __init__(self, taxonomy_repo: TaxonomyRepository, llm: object) -> ServiceError | None:
         self.taxonomy_repo = taxonomy_repo
-        self.llm = build_chat_llm("SUPPORT_BOT_CLASSIFIER_MODEL")
-        if self.llm is None:
-            return ServiceError(
-                code="cant_connect_to_llm",
-                message="Cant connect to llm. "
-            )
+        self.llm = llm
 
     def classify(
         self,

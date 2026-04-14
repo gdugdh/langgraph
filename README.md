@@ -8,6 +8,7 @@ What is implemented:
 - structured LLM classification without heuristic fallback
 - taxonomy loaded from a repository-backed JSON file
 - file-backed KB search through an MCP-shaped adapter
+- KB search queries are generated in Russian
 - one `issues.json` file for incident storage
 - heuristic deduplication first
 - optional LLM refinement for borderline duplicate cases
@@ -26,6 +27,22 @@ Run:
 
 ```bash
 python project/support_bot.py
+```
+
+Make targets from `project/`:
+
+```bash
+make install
+make run
+make test
+make benchmark
+```
+
+Tests:
+
+```bash
+python -m unittest discover -s tests -v
+python tests/run_duplicate_similarity_benchmark.py
 ```
 
 Optional env vars:
