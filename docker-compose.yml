@@ -1,0 +1,57 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: support_bot_ollama
+    profiles: ["ollama"]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  ollama_init:
+    image: ollama/ollama:latest
+    container_name: support_bot_ollama_init
+    profiles: ["ollama"]
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2:1b}
+    volumes:
+      - ollama_data:/root/.ollama
+    entrypoint:
+      - /bin/sh
+      - -c
+      - ollama pull "$${OLLAMA_MODEL}"
+    restart: "no"
+
+  app:
+    build:
+      context: ..
+      dockerfile: project/Dockerfile
+    container_name: support_bot_app
+    working_dir: /app
+    env_file:
+      - ${APP_ENV_FILE:-../.env}
+    environment:
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2:1b}
+      SUPPORT_BOT_CLASSIFIER_MODEL: ${SUPPORT_BOT_CLASSIFIER_MODEL:-llama3.2:1b}
+      SUPPORT_BOT_DEDUP_MODEL: ${SUPPORT_BOT_DEDUP_MODEL:-llama3.2:1b}
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./kb:/app/kb:ro
+      - ./data:/app/data:ro
+      - ./issues.json:/app/issues.json
+      - ${APP_ENV_FILE:-../.env}:/app/.env:ro
+
+volumes:
+  ollama_data:

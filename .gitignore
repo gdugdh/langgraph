@@ -4,3 +4,4 @@ repo/__pycache__
 tests/__pycache__
 AGENTS.md
 graph.png
+.env

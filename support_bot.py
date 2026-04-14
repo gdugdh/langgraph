@@ -44,8 +44,12 @@ def get_created_issue_id(state: SupportTicketState) -> str | None:
 
 
 def receive_ticket_node(state: SupportTicketState) -> dict[str, Any]:
-    user_id = input("ID пользователя [demo-user]: ").strip() or "demo-user"
-    message = input("Опишите проблему: ").strip()
+    user_id = state["user_id"].strip() or "demo-user"
+    if not state["messages"]:
+        raise RuntimeError("Ticket message is empty.")
+    message = state["messages"][0]["message"].strip()
+    if not message:
+        raise RuntimeError("Ticket message is empty.")
     now = utc_now()
     return {
         "ticket_id": str(uuid.uuid4()),
@@ -281,12 +285,12 @@ def build_graph(
     return graph.compile()
 
 
-def initial_state() -> SupportTicketState:
+def initial_state(user_id: str = "", initial_message: str = "") -> SupportTicketState:
     now = utc_now()
     return {
         "ticket_id": "",
-        "user_id": "",
-        "messages": [],
+        "user_id": user_id,
+        "messages": [{"role": "user", "message": initial_message}] if initial_message else [],
         "preliminary_title": "",
         "category": "unknown",
         "priority": "medium",
@@ -307,13 +311,7 @@ def initial_state() -> SupportTicketState:
     }
 
 
-def main() -> None:
-    print("Support Bot MVP")
-    print("Flow: intake -> classify -> clarify(if needed, up to 3 times) -> search KB -> issue handling -> final response")
-    print(f"KB directory: {KB_DIR}")
-    print(f"Issue registry: {ISSUES_PATH}")
-    print(f"Taxonomy file: {TAXONOMY_PATH}")
-
+def build_app():
     taxonomy_repo = FileTaxonomyRepository(TAXONOMY_PATH)
     issue_repo = FileIssueRepository(ISSUES_PATH)
     kb_repo = FileKnowledgeBaseRepository(KB_DIR)
@@ -325,45 +323,67 @@ def main() -> None:
     search_service = KnowledgeBaseSearchService(kb_repo)
     issue_service = IssueService(issue_repo, dedup_llm)
 
-    app = build_graph(
+    return build_graph(
         classifier_service=classifier_service,
         search_service=search_service,
         issue_service=issue_service,
     )
-    try:
-        final_state = app.invoke(initial_state())
-    except RuntimeError as exc:
-        print(f"\nExecution failed: {exc}")
-        return
 
-    print("\n--- Сводка по тикету ---")
-    print(
-        json.dumps(
-            {
-                "ticket_id": final_state["ticket_id"],
-                "user_id": final_state["user_id"],
-                "messages": final_state["messages"],
-                "preliminary_title": final_state["preliminary_title"],
-                "category": final_state["category"],
-                "priority": final_state["priority"],
-                "status": final_state["status"],
-                "need_clarification": final_state["need_clarification"],
-                "kb_results": final_state["kb_results"],
-                "solution_found": final_state["solution_found"],
-                "solution_text": final_state["solution_text"],
-                "similar_issue_found": final_state["similar_issue_found"],
-                "similar_issue_id": final_state["similar_issue_id"],
-                "task_created": final_state["task_created"],
-                "task_file_path": final_state["task_file_path"],
-                "frequency_incremented": final_state["frequency_incremented"],
-                "final_response": final_state["final_response"],
-                "created_at": final_state["created_at"],
-                "updated_at": final_state["updated_at"],
-            },
-            ensure_ascii=False,
-            indent=2,
+
+def main() -> None:
+    print("Support Bot MVP")
+    print("Flow: intake -> classify -> clarify(if needed, up to 3 times) -> search KB -> issue handling -> final response")
+    print(f"KB directory: {KB_DIR}")
+    print(f"Issue registry: {ISSUES_PATH}")
+    print(f"Taxonomy file: {TAXONOMY_PATH}")
+
+    app = build_app()
+    user_id = input("ID пользователя [demo-user]: ").strip() or "demo-user"
+    print("Введите проблему. Команды выхода: exit, quit, выход")
+
+    while True:
+        problem = input("\nОпишите проблему: ").strip()
+        if problem.lower() in {"exit", "quit", "выход"}:
+            print("Завершение работы.")
+            break
+        if not problem:
+            print("Пустой ввод пропущен.")
+            continue
+
+        try:
+            final_state = app.invoke(initial_state(user_id=user_id, initial_message=problem))
+        except RuntimeError as exc:
+            print(f"\nExecution failed: {exc}")
+            continue
+
+        print("\n--- Сводка по тикету ---")
+        print(
+            json.dumps(
+                {
+                    "ticket_id": final_state["ticket_id"],
+                    "user_id": final_state["user_id"],
+                    "messages": final_state["messages"],
+                    "preliminary_title": final_state["preliminary_title"],
+                    "category": final_state["category"],
+                    "priority": final_state["priority"],
+                    "status": final_state["status"],
+                    "need_clarification": final_state["need_clarification"],
+                    "kb_results": final_state["kb_results"],
+                    "solution_found": final_state["solution_found"],
+                    "solution_text": final_state["solution_text"],
+                    "similar_issue_found": final_state["similar_issue_found"],
+                    "similar_issue_id": final_state["similar_issue_id"],
+                    "task_created": final_state["task_created"],
+                    "task_file_path": final_state["task_file_path"],
+                    "frequency_incremented": final_state["frequency_incremented"],
+                    "final_response": final_state["final_response"],
+                    "created_at": final_state["created_at"],
+                    "updated_at": final_state["updated_at"],
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
         )
-    )
 
 
 if __name__ == "__main__":
